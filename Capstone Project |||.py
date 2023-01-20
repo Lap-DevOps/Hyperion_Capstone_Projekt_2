@@ -8,7 +8,9 @@ from tkinter import messagebox
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.geometry("500x500")
+
+        self.geometry("700x500")
+
         self.title("Task Manager")
         self.resizable(0, 0)
         self['background'] = '#EBEBEB'
@@ -17,7 +19,8 @@ class App(tk.Tk):
         self.logged_in_user = None
 
         self.get_users_list()
-        LoginPage().pack()
+        MainPage().place(height=500, width=700)
+
 
     def get_users_list(self):
         with open('user.txt', "r") as file:
@@ -25,20 +28,44 @@ class App(tk.Tk):
             for line in data:
                 accounts = line.strip("\n", ).strip("").split(",")
                 self.all_users[accounts[0].strip()] = accounts[1].strip()
-            print(self.all_users)
+
 
 
 class MainPage(tk.Frame):
     def __init__(self):
         super(MainPage, self).__init__()
         self.background = self.master["background"]
-        self.label1 = tk.Label(self, text=f"Main page{self.master.logged_in_user}", bg=self.background)
-        self.label1.pack(pady=20)
-        self.button = tk.Button(self, text="G0 to 2", bg=self.background, command=lambda: self.show_frame(MainPage))
-        self.button.pack()
-        self.button = tk.Button(self, text="G0 to statistic", bg=self.background,
-                                command=lambda: self.show_frame(StatisticPage))
-        self.button.pack()
+
+
+        self.main_frame = tk.LabelFrame(self, bg=self.background)
+        self.main_frame.place(x=10, y=10)
+        self.user_frame = tk.LabelFrame(self.main_frame, bg=self.background, )
+        self.user_name_label = tk.Label(self.main_frame, text=f"Welcome {str(self.master.logged_in_user).title()} !",
+                                        bg=self.background, font=('Helvetica', 20, "bold"))
+        self.log_out_btn = tk.Button(self.main_frame, text="Log out", command=lambda: self.show_frame(LoginPage),
+                                     bg=self.background, )
+        self.user_name_label.place(x=260, y=10, width=170, height=20)
+        self.log_out_btn.place(x=550, y=10, width=100, height=20)
+        self.main_frame.place(height=50, width=680, )
+
+        self.scd_frame = tk.LabelFrame(self, text="MENU:", bg=self.background)
+        self.scd_frame.place(x=10, y=60, width=680, height=430)
+        tk.Button(self.scd_frame, text="Register new user").place(x=225, y=0, width=250, height=50)
+        tk.Button(self.scd_frame, text="Add new task").place(x=225, y=60, width=250,
+                                                             height=50)
+        tk.Button(self.scd_frame, text="View all tasks").place(x=225, y=120, width=250,
+                                                               height=50)
+        tk.Button(self.scd_frame, text="View my tasks").place(x=225, y=180, width=250,
+                                                              height=50)
+        tk.Button(self.scd_frame, text="Generate reports").place(x=225, y=240, width=250,
+                                                                 height=50)
+        if str(self.master.logged_in_user).lower() == "admin":
+            tk.Button(self.scd_frame, text="Display statistic").place(x=225, y=300, width=250,
+                                                                      height=50)
+        tk.Button(self.scd_frame, text="Exit", command=self.master.destroy).place(x=225, y=360,
+                                                                                  width=250,
+                                                                                  height=50, )
+
 
     def show_frame(self, page_name):
         self.destroy()
@@ -72,7 +99,8 @@ class LoginPage(tk.Frame):
 
     def show_frame(self, page_name):
         self.destroy()
-        page_name().pack()
+
+        page_name().place(height=500, width=700)
 
     def log_in_user(self):
         try:
