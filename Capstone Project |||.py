@@ -8,7 +8,9 @@ from tkinter import messagebox
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+
         self.geometry("700x500")
+
         self.title("Task Manager")
         self.resizable(0, 0)
         self['background'] = '#EBEBEB'
@@ -19,6 +21,7 @@ class App(tk.Tk):
         self.get_users_list()
         MainPage().place(height=500, width=700)
 
+
     def get_users_list(self):
         with open('user.txt', "r") as file:
             data = file.readlines()
@@ -27,10 +30,12 @@ class App(tk.Tk):
                 self.all_users[accounts[0].strip()] = accounts[1].strip()
 
 
+
 class MainPage(tk.Frame):
     def __init__(self):
         super(MainPage, self).__init__()
         self.background = self.master["background"]
+
 
         self.main_frame = tk.LabelFrame(self, bg=self.background)
         self.main_frame.place(x=10, y=10)
@@ -60,6 +65,7 @@ class MainPage(tk.Frame):
         tk.Button(self.scd_frame, text="Exit", command=self.master.destroy).place(x=225, y=360,
                                                                                   width=250,
                                                                                   height=50, )
+
 
     def show_frame(self, page_name):
         self.destroy()
@@ -93,6 +99,7 @@ class LoginPage(tk.Frame):
 
     def show_frame(self, page_name):
         self.destroy()
+
         page_name().place(height=500, width=700)
 
     def log_in_user(self):
