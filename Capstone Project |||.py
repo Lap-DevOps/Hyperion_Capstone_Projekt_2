@@ -19,8 +19,7 @@ class App(tk.Tk):
         self.logged_in_user = None
 
         self.get_users_list()
-        MainPage().place(height=500, width=700)
-
+        AddUserForm().place(height=500, width=700)
 
     def get_users_list(self):
         with open('user.txt', "r") as file:
@@ -30,12 +29,10 @@ class App(tk.Tk):
                 self.all_users[accounts[0].strip()] = accounts[1].strip()
 
 
-
 class MainPage(tk.Frame):
     def __init__(self):
         super(MainPage, self).__init__()
         self.background = self.master["background"]
-
 
         self.main_frame = tk.LabelFrame(self, bg=self.background)
         self.main_frame.place(x=10, y=10)
@@ -50,7 +47,10 @@ class MainPage(tk.Frame):
 
         self.scd_frame = tk.LabelFrame(self, text="MENU:", bg=self.background)
         self.scd_frame.place(x=10, y=60, width=680, height=430)
-        tk.Button(self.scd_frame, text="Register new user").place(x=225, y=0, width=250, height=50)
+        tk.Button(self.scd_frame, text="Register new user", command=lambda: self.show_frame(AddUserForm)).place(x=225,
+                                                                                                                y=0,
+                                                                                                                width=250,
+                                                                                                                height=50)
         tk.Button(self.scd_frame, text="Add new task").place(x=225, y=60, width=250,
                                                              height=50)
         tk.Button(self.scd_frame, text="View all tasks").place(x=225, y=120, width=250,
@@ -66,10 +66,14 @@ class MainPage(tk.Frame):
                                                                                   width=250,
                                                                                   height=50, )
 
-
     def show_frame(self, page_name):
-        self.destroy()
-        page_name().pack()
+        print(str(page_name))
+        if str(page_name) == "<class '__main__.AddUserForm'>" and str(self.master.logged_in_user).lower() != 'admin':
+            messagebox.showerror(title="Error", message="You don't have right to do this !")
+            self.bell()
+        else:
+            self.destroy()
+            page_name().place(height=500, width=700)
 
 
 class LoginPage(tk.Frame):
@@ -89,17 +93,16 @@ class LoginPage(tk.Frame):
                                        font=self.font)
         self.login_button = tk.Button(self.center_frame, text="Login", background="#303841",
                                       font=('Helvetica', 20), command=lambda: self.log_in_user())
-        self.login_label.grid(row=0, column=0, columnspan=2, pady=40)
-        self.username_label.grid(row=1, column=0, )
-        self.username_entry.grid(row=1, column=1, pady=20, padx=20)
-        self.password_label.grid(row=2, column=0, )
-        self.password_entry.grid(row=2, column=1, )
-        self.login_button.grid(row=3, column=0, columnspan=2, pady=30)
-        self.center_frame.pack(side='bottom')
+        self.login_label.grid(row=0, column=0, columnspan=2, pady=40, padx=100)
+        self.username_label.grid(row=1, column=0, padx=100)
+        self.username_entry.grid(row=1, column=1, pady=20, padx=100)
+        self.password_label.grid(row=2, column=0, padx=100)
+        self.password_entry.grid(row=2, column=1, padx=100)
+        self.login_button.grid(row=3, column=0, columnspan=2, pady=30, padx=100)
+        self.center_frame.place(x=0, y=0, height=500, width=700)
 
     def show_frame(self, page_name):
         self.destroy()
-
         page_name().place(height=500, width=700)
 
     def log_in_user(self):
@@ -131,6 +134,71 @@ class StatisticPage(tk.Frame):
     def show_frame(self, page_name):
         self.destroy()
         page_name().pack()
+
+
+class AddUserForm(tk.Frame):
+    def __init__(self):
+        super(AddUserForm, self).__init__()
+        self.background = self.master["background"]
+        self.font = ('Helvetica', 16)
+
+        self.main_frame = tk.LabelFrame(self, bg=self.background)
+        self.main_frame.place(x=10, y=10)
+        self.user_frame = tk.LabelFrame(self.main_frame, bg=self.background, )
+        self.user_name_label = tk.Label(self.main_frame, text=f"Register new User:",
+                                        bg=self.background, font=('Helvetica', 20, "bold"))
+        self.log_out_btn = tk.Button(self.main_frame, text="Log out", command=lambda: self.show_frame(LoginPage),
+                                     bg=self.background, )
+        self.user_name_label.place(x=220, y=10, width=250, height=20)
+        self.log_out_btn.place(x=550, y=10, width=100, height=20)
+        self.main_frame.place(height=50, width=680, )
+        self.scd_frame = tk.LabelFrame(self, text="Add user:", bg=self.background)
+        self.scd_frame.place(x=10, y=60, width=680, height=430)
+
+        self.username_label = tk.Label(self.scd_frame, text="Username", background=self.background,
+                                       font=self.font)
+        self.username_label.place(x=150, y=50)
+        self.username_entry = tk.Entry(self.scd_frame, font=self.font)
+        self.username_entry.place(x=300, y=50)
+        self.password_entry = tk.Entry(self.scd_frame, font=self.font)
+        self.password_entry.place(x=300, y=100)
+        self.password_label = tk.Label(self.scd_frame, text="Password", background=self.background,
+                                       font=self.font).place(x=150, y=100)
+        self.password_label2 = tk.Label(self.scd_frame, text="Repeat Password", background=self.background,
+                                        font=self.font).place(x=150, y=150)
+        self.password_entry2 = tk.Entry(self.scd_frame, font=self.font)
+        self.password_entry2.place(x=300, y=150)
+
+        self.subit_button = tk.Button(self.scd_frame, text="Submit",
+                                      font=('Helvetica', 20), command=self.reg_user).place(x=325, y=250)
+
+    def reg_user(self):
+        try:
+            if self.username_entry.get().lower() in self.master.all_users:
+                self.bell()
+                messagebox.showerror(title="Error", message="Username exist !")
+            elif self.username_entry.get() == "" or self.password_entry.get() == "" or self.password_entry2.get() == "":
+                self.bell()
+                messagebox.showerror(title="Error", message="Username or Password can't be empty!")
+            elif self.password_entry.get() != self.password_entry2.get():
+                self.bell()
+                messagebox.showerror(title="Error", message="Incorrect Password !")
+            else:
+                print("good")
+                with open("user.txt", "a") as file:
+                    new_user = (self.username_entry.get().lower() + "," + self.password_entry.get().lower() + "\n")
+                    print(new_user, )
+                    file.write(new_user)
+                    messagebox.showerror(title="Susses", message="User added !")
+                    self.show_frame(MainPage)
+
+        except KeyError:
+            pass
+
+    def show_frame(self, page_name):
+        self.destroy()
+
+        page_name().place(height=500, width=700)
 
 
 if __name__ == '__main__':
