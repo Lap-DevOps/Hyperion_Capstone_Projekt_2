@@ -2,7 +2,7 @@
 # it stores user and their task and show it using ktinter
 
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 
 
 class App(tk.Tk):
@@ -19,7 +19,7 @@ class App(tk.Tk):
         self.logged_in_user = None
 
         self.get_users_list()
-        AddUserForm().place(height=500, width=700)
+        View_Tasks().place(height=500, width=700)
 
     def get_users_list(self):
         with open('user.txt', "r") as file:
@@ -67,7 +67,6 @@ class MainPage(tk.Frame):
                                                                                   height=50, )
 
     def show_frame(self, page_name):
-        print(str(page_name))
         if str(page_name) == "<class '__main__.AddUserForm'>" and str(self.master.logged_in_user).lower() != 'admin':
             messagebox.showerror(title="Error", message="You don't have right to do this !")
             self.bell()
@@ -184,10 +183,8 @@ class AddUserForm(tk.Frame):
                 self.bell()
                 messagebox.showerror(title="Error", message="Incorrect Password !")
             else:
-                print("good")
                 with open("user.txt", "a") as file:
                     new_user = (self.username_entry.get().lower() + "," + self.password_entry.get().lower() + "\n")
-                    print(new_user, )
                     file.write(new_user)
                     messagebox.showerror(title="Susses", message="User added !")
                     self.show_frame(MainPage)
@@ -197,7 +194,63 @@ class AddUserForm(tk.Frame):
 
     def show_frame(self, page_name):
         self.destroy()
+        page_name().place(height=500, width=700)
 
+
+class View_Tasks(tk.Frame):
+    def __init__(self):
+        super(View_Tasks, self).__init__()
+        self.background = self.master["background"]
+        self.font = ('Helvetica', 16)
+
+        self.main_frame = tk.LabelFrame(self, bg=self.background)
+        self.main_frame.place(x=10, y=10)
+        self.user_frame = tk.LabelFrame(self.main_frame, bg=self.background, )
+        self.user_name_label = tk.Label(self.main_frame, text=f"View all Users tasks:",
+                                        bg=self.background, font=('Helvetica', 20, "bold"))
+        self.log_out_btn = tk.Button(self.main_frame, text="Log out", command=lambda: self.show_frame(LoginPage),
+                                     bg=self.background, )
+        self.user_name_label.place(x=220, y=10, width=250, height=20)
+        self.log_out_btn.place(x=550, y=10, width=100, height=20)
+        self.main_frame.place(height=50, width=680, )
+        self.scd_frame = tk.LabelFrame(self, text="Tasks:", bg=self.background)
+        self.scd_frame.place(x=10, y=60, width=680, height=430)
+
+        self.thrd_frame = tk.LabelFrame(self, bg=self.background, ).place(x=10, y=80, width=680, height=30)
+        self.lbl1 = tk.Label(self.thrd_frame, text='User').place(x=13, y=85, width=45, height=20)
+        self.lbl2 = tk.Label(self.thrd_frame, text='Task title').place(x=65, y=85, width=90, height=20)
+        self.lbl3 = tk.Label(self.thrd_frame, text='Task description').place(x=165, y=85, width=350, height=20)
+        self.lbl5 = tk.Label(self.thrd_frame, text='Start date').place(x=525, y=85, width=70, height=20)
+        self.lbl6 = tk.Label(self.thrd_frame, text='End date').place(x=600, y=85, width=70, height=20)
+        self.lbl7 = tk.Label(self.thrd_frame, text='+').place(x=672, y=85, width=15, height=20)
+
+        self.forth_frame = tk.LabelFrame(self, bg=self.background)
+        self.forth_frame.place(x=10, y=115, width=680, height=350)
+        self.canvas = tk.Canvas(self.forth_frame)
+        self.scroll_bar = ttk.Scrollbar(self.canvas, orient="vertical", command=self.canvas.yview)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
+            )
+        )
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scroll_bar.set)
+
+        for x in range(1):
+            self.sdasd = tk.LabelFrame(self.scrollable_frame, text=f"Task # {x}", width=650, height=100)
+            self.sdasd.pack()
+
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scroll_bar.pack(side="right", fill="y")
+
+
+        self.submit_button = tk.Button(self.main_frame, text="Submit",
+                                      font=('Helvetica', 20), ).place(x=25, y=350)
+
+    def show_frame(self, page_name):
+        self.destroy()
         page_name().place(height=500, width=700)
 
 
