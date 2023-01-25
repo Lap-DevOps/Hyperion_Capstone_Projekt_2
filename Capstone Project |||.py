@@ -206,6 +206,7 @@ class View_Tasks(tk.Frame):
         self.main_frame = tk.LabelFrame(self, bg=self.background)
         self.main_frame.place(x=10, y=10)
         self.user_frame = tk.LabelFrame(self.main_frame, bg=self.background, )
+
         self.user_name_label = tk.Label(self.main_frame, text=f"View all Users tasks:",
                                         bg=self.background, font=('Helvetica', 20, "bold"))
         self.log_out_btn = tk.Button(self.main_frame, text="Log out", command=lambda: self.show_frame(LoginPage),
@@ -213,20 +214,22 @@ class View_Tasks(tk.Frame):
         self.user_name_label.place(x=220, y=10, width=250, height=20)
         self.log_out_btn.place(x=550, y=10, width=100, height=20)
         self.main_frame.place(height=50, width=680, )
+
         self.scd_frame = tk.LabelFrame(self, text="Tasks:", bg=self.background)
         self.scd_frame.place(x=10, y=60, width=680, height=430)
 
         self.thrd_frame = tk.LabelFrame(self, bg=self.background, ).place(x=10, y=80, width=680, height=30)
-        self.lbl1 = tk.Label(self.thrd_frame, text='User').place(x=13, y=85, width=45, height=20)
-        self.lbl2 = tk.Label(self.thrd_frame, text='Task title').place(x=65, y=85, width=90, height=20)
-        self.lbl3 = tk.Label(self.thrd_frame, text='Task description').place(x=165, y=85, width=350, height=20)
-        self.lbl5 = tk.Label(self.thrd_frame, text='Start date').place(x=525, y=85, width=70, height=20)
-        self.lbl6 = tk.Label(self.thrd_frame, text='End date').place(x=600, y=85, width=70, height=20)
-        self.lbl7 = tk.Label(self.thrd_frame, text='+').place(x=672, y=85, width=15, height=20)
+        self.lbl_user = tk.Label(self.thrd_frame, text='User').place(x=17, y=85, width=47, height=20)
+        self.lbl = tk.Label(self.thrd_frame, text='Task title').place(x=67, y=85, width=105, height=20)
+        self.lbl3 = tk.Label(self.thrd_frame, text='Task description').place(x=175, y=85, width=205, height=20)
+        self.lbl5 = tk.Label(self.thrd_frame, text='Start date').place(x=385, y=85, width=95, height=20)
+        self.lbl6 = tk.Label(self.thrd_frame, text='End date').place(x=485, y=85, width=95, height=20)
+        self.lbl7 = tk.Label(self.thrd_frame, text='Done ?').place(x=590, y=85, width=45, height=20)
 
         self.forth_frame = tk.LabelFrame(self, bg=self.background)
         self.forth_frame.place(x=10, y=115, width=680, height=350)
-        self.canvas = tk.Canvas(self.forth_frame)
+
+        self.canvas = tk.Canvas(self.forth_frame, background=self.background)
         self.scroll_bar = ttk.Scrollbar(self.canvas, orient="vertical", command=self.canvas.yview)
         self.scrollable_frame = ttk.Frame(self.canvas)
         self.scrollable_frame.bind(
@@ -238,20 +241,103 @@ class View_Tasks(tk.Frame):
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scroll_bar.set)
 
-        for x in range(1):
-            self.sdasd = tk.LabelFrame(self.scrollable_frame, text=f"Task # {x}", width=650, height=100)
-            self.sdasd.pack()
+        with open("tasks.txt", "r") as file:
+            self.data = file.readlines()
+            for x in self.data:
+                task = x.split(",")
+                frame = Task_Frame(self.scrollable_frame, task=task)
+                frame.pack()
 
         self.canvas.pack(side="left", fill="both", expand=True)
         self.scroll_bar.pack(side="right", fill="y")
+        # self.scrollable_frame.pack(side="left", fill="both", expand=True)
 
-
-        self.submit_button = tk.Button(self.main_frame, text="Submit",
-                                      font=('Helvetica', 20), ).place(x=25, y=350)
+        # self.submit_button = tk.Button(self.main_frame, text="Submit",
+        #                                font=('Helvetica', 20), ).place(x=25, y=350)
 
     def show_frame(self, page_name):
         self.destroy()
         page_name().place(height=500, width=700)
+
+
+class Task_Frame(tk.Frame):
+    def __init__(self, parent, task=None):
+        tk.Frame.__init__(self, parent, )
+        self.background = '#EBEBEB'
+        self.task = task
+        self.task_frame = tk.LabelFrame(self, text=f"Task #{task[0]} ", width=650, height=100)
+        self.task_frame.pack()
+        self.lbl_user = tk.Label(self.task_frame, text=f"{task[1]}", justify=tk.LEFT, bg=self.background,
+                                 height=4)
+        self.lbl_user.place(x=1, y=0)
+        self.lbl_user = tk.Label(self.task_frame, text=f"{task[1]}", justify=tk.LEFT, bg=self.background,
+                                 height=4)
+        self.lbl_user.place(x=1, y=0)
+        self.lbl_title = tk.Label(self.task_frame, text=f"{task[2]}", width=11,
+                                  height=4, justify=tk.LEFT, wraplength=100, bg=self.background)
+        self.lbl_title.place(x=50, y=0)
+        self.lbl_task = tk.Label(self.task_frame, text=f"{task[3]}", width=22,
+                                 height=4, justify=tk.LEFT, wraplength=200, bg=self.background)
+        self.lbl_task.place(x=160, y=0)
+        self.lbl_s_date = tk.Label(self.task_frame, text=f"{task[4]}", width=10,
+                                   height=4, justify=tk.LEFT, wraplength=200, bg=self.background)
+        self.lbl_s_date.place(x=368, y=0)
+        self.lbl_end_date = tk.Label(self.task_frame, text=f"{task[5]}", width=10,
+                                     height=4, justify=tk.LEFT, wraplength=200, bg=self.background)
+        self.lbl_end_date.place(x=469, y=0)
+        self.edit_button = tk.Button(self.task_frame, text="Edit", command=lambda: print(self.task[0]))
+        self.edit_button.place(x=600, y=0)
+        self.confirm_button = tk.Button(self.task_frame, text="Done", command=lambda: self.mark_task_done(task[0]))
+        self.confirm_button.place(x=600, y=25)
+        self.del_button = tk.Button(self.task_frame, text="Delt", command=lambda: print(self.task[0]))
+        self.del_button.place(x=600, y=50)
+        if str(task[6]).strip() == "Yes":
+            self.fin_lbl = tk.Label(self.task_frame, text='+', background='green')
+        else:
+            self.fin_lbl = tk.Label(self.task_frame, text='-', background='red')
+        self.fin_lbl.place(x=575, y=25)
+
+        self.pack()
+
+    def mark_task_done(self, task):
+        # print(task)
+        answer = messagebox.askokcancel(title="Confirm", message="Confirm task fulfilment ? !")
+        if answer:
+            with open("tasks.txt", "r") as file:
+                lines = file.readlines()
+                print(lines)
+                print(type(lines[0]))
+                # for x in lines:
+                #     line = x.split(",")
+                #     if line[6] == "Yes\n":
+                #         line[6] = "Yes"
+                #     elif line[6] == "No\n":
+                #          line[6] = "No"
+                #     elif line[0] == task[0]:
+                #         # print(line)
+                #         line[6] = "Yes\n"
+                        # if line[6] == "Yes\n":
+                        #     line[6] = "Yes"
+                        # elif line[6] == "No\n":
+                        #     line[6] = "No"
+                        # print(line)
+                #         text = ",".join(line)
+                #         print(text)
+                #         print(type(text))
+                #     lines[int(task) - 1] = ",".join(line)
+                # # lines[x] = ",".join(line)
+                # print(lines)
+                #         print(line)
+                #
+                #         zxzx = ",".join(line)
+                #         print(zxzx)
+                #         lines[int(task) - 1] = ",".join(line)
+                #         print(lines)
+                # str(lines).replace('\n','')
+                # lines= "\n".join(str(lines))
+                # print(lines)
+                # print(type(lines))
+                # file.write(str(lines).split("\n"))
 
 
 if __name__ == '__main__':
