@@ -57,8 +57,10 @@ class MainPage(tk.Frame):
                                                                                                             y=120,
                                                                                                             width=250,
                                                                                                             height=50)
-        tk.Button(self.scd_frame, text="View my tasks").place(x=225, y=180, width=250,
-                                                              height=50)
+        tk.Button(self.scd_frame, text="View my tasks", command=lambda: self.show_frame(View_My_Tasks)).place(x=225,
+                                                                                                              y=180,
+                                                                                                              width=250,
+                                                                                                              height=50)
         tk.Button(self.scd_frame, text="Generate reports").place(x=225, y=240, width=250,
                                                                  height=50)
         if str(self.master.logged_in_user).lower() == "admin":
@@ -218,7 +220,7 @@ class View_Tasks(tk.Frame):
         self.log_out_btn = tk.Button(self.main_frame, text="Log out", command=lambda: self.show_frame(LoginPage),
                                      bg=self.background, )
         self.main_meny_btn = tk.Button(self.main_frame, text="Main page", command=lambda: self.show_frame(MainPage),
-                                     bg=self.background, )
+                                       bg=self.background, )
         self.user_name_label.place(x=220, y=10, width=250, height=20)
         self.log_out_btn.place(x=550, y=2, width=100, height=20)
         self.main_meny_btn.place(x=550, y=25, width=100, height=20)
@@ -260,6 +262,69 @@ class View_Tasks(tk.Frame):
         self.canvas.pack(side="left", fill="both", expand=True)
         self.scroll_bar.pack(side="right", fill="y")
 
+    def show_frame(self, page_name):
+        self.destroy()
+        page_name().place(height=500, width=700)
+
+
+class View_My_Tasks(tk.Frame):
+    def __init__(self):
+        super(View_My_Tasks, self).__init__()
+        self.background = self.master["background"]
+        self.font = ('Helvetica', 16)
+        self.logged_in_user = self.master.logged_in_user
+
+        self.main_frame = tk.LabelFrame(self, bg=self.background)
+        self.main_frame.place(x=10, y=10)
+        self.user_frame = tk.LabelFrame(self.main_frame, bg=self.background, )
+
+        self.user_name_label = tk.Label(self.main_frame, text=f"View {str(self.logged_in_user).title()} tasks:",
+                                        bg=self.background, font=('Helvetica', 20, "bold"))
+        self.log_out_btn = tk.Button(self.main_frame, text="Log out", command=lambda: self.show_frame(LoginPage),
+                                     bg=self.background, )
+        self.main_meny_btn = tk.Button(self.main_frame, text="Main page", command=lambda: self.show_frame(MainPage),
+                                       bg=self.background, )
+        self.user_name_label.place(x=220, y=10, width=250, height=20)
+        self.log_out_btn.place(x=550, y=2, width=100, height=20)
+        self.main_meny_btn.place(x=550, y=25, width=100, height=20)
+        self.main_frame.place(height=50, width=680, )
+
+        self.scd_frame = tk.LabelFrame(self, text="Tasks:", bg=self.background)
+        self.scd_frame.place(x=10, y=60, width=680, height=430)
+
+        self.thrd_frame = tk.LabelFrame(self, bg=self.background, ).place(x=10, y=80, width=680, height=30)
+        self.lbl_user = tk.Label(self.thrd_frame, text='User').place(x=17, y=85, width=47, height=20)
+        self.lbl = tk.Label(self.thrd_frame, text='Task title').place(x=67, y=85, width=105, height=20)
+        self.lbl3 = tk.Label(self.thrd_frame, text='Task description').place(x=175, y=85, width=205, height=20)
+        self.lbl5 = tk.Label(self.thrd_frame, text='Start date').place(x=385, y=85, width=95, height=20)
+        self.lbl6 = tk.Label(self.thrd_frame, text='End date').place(x=485, y=85, width=95, height=20)
+        self.lbl7 = tk.Label(self.thrd_frame, text='Done ?').place(x=590, y=85, width=45, height=20)
+
+        self.forth_frame = tk.LabelFrame(self, bg=self.background)
+        self.forth_frame.place(x=10, y=115, width=680, height=350)
+
+        self.canvas = tk.Canvas(self.forth_frame, background=self.background)
+        self.scroll_bar = ttk.Scrollbar(self.canvas, orient="vertical", command=self.canvas.yview)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
+            )
+        )
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scroll_bar.set)
+
+        with open("tasks.txt", "r") as file:
+            self.data = file.readlines()
+            for x in self.data:
+                task = x.split(",")
+                if task[1].lower() == str(self.logged_in_user).lower():
+                    frame = Task_Frame(self.scrollable_frame, task=task, user=self.logged_in_user)
+                    frame.pack()
+
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scroll_bar.pack(side="right", fill="y")
 
     def show_frame(self, page_name):
         self.destroy()
@@ -320,7 +385,11 @@ class Task_Frame(tk.Frame):
             with open("tasks.txt", "w") as file:
                 file.write(''.join(new_file_text))
         self.destroy()
-        View_Tasks().place(height=500, width=700)
+        if 'view_tasks' in str(self):
+            View_Tasks().place(height=500, width=700)
+        elif 'view_my_tasks' in str(self):
+            View_My_Tasks().place(height=500, width=700)
+
 
     def delete_task(self, task):
         if str(self.logged_in_user).lower() == "admin":
@@ -336,7 +405,10 @@ class Task_Frame(tk.Frame):
                 with open("tasks.txt", "w") as file:
                     file.write(''.join(new_file_text))
                 self.destroy()
-                View_Tasks().place(height=500, width=700)
+                if 'view_tasks' in str(self):
+                    View_Tasks().place(height=500, width=700)
+                elif 'view_my_tasks' in str(self):
+                    View_My_Tasks().place(height=500, width=700)
         else:
             messagebox.showerror(title="Error", message="You don't have right to do this !")
             self.bell()
