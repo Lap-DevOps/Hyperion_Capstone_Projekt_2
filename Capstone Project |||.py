@@ -12,7 +12,7 @@ class App(tk.Tk):
         self.geometry("700x500")
 
         self.title("Task Manager")
-        self.resizable(0, 0)
+        self.resizable(None, None)
         self['background'] = '#EBEBEB'
 
         self.all_users = {}
@@ -53,8 +53,10 @@ class MainPage(tk.Frame):
                                                                                                                 height=50)
         tk.Button(self.scd_frame, text="Add new task").place(x=225, y=60, width=250,
                                                              height=50)
-        tk.Button(self.scd_frame, text="View all tasks").place(x=225, y=120, width=250,
-                                                               height=50)
+        tk.Button(self.scd_frame, text="View all tasks", command=lambda: self.show_frame(View_Tasks)).place(x=225,
+                                                                                                            y=120,
+                                                                                                            width=250,
+                                                                                                            height=50)
         tk.Button(self.scd_frame, text="View my tasks").place(x=225, y=180, width=250,
                                                               height=50)
         tk.Button(self.scd_frame, text="Generate reports").place(x=225, y=240, width=250,
@@ -148,8 +150,11 @@ class AddUserForm(tk.Frame):
                                         bg=self.background, font=('Helvetica', 20, "bold"))
         self.log_out_btn = tk.Button(self.main_frame, text="Log out", command=lambda: self.show_frame(LoginPage),
                                      bg=self.background, )
+        self.main_meny_btn = tk.Button(self.main_frame, text="Main page", command=lambda: self.show_frame(MainPage),
+                                       bg=self.background, )
         self.user_name_label.place(x=220, y=10, width=250, height=20)
-        self.log_out_btn.place(x=550, y=10, width=100, height=20)
+        self.log_out_btn.place(x=550, y=2, width=100, height=20)
+        self.main_meny_btn.place(x=550, y=25, width=100, height=20)
         self.main_frame.place(height=50, width=680, )
         self.scd_frame = tk.LabelFrame(self, text="Add user:", bg=self.background)
         self.scd_frame.place(x=10, y=60, width=680, height=430)
@@ -202,6 +207,7 @@ class View_Tasks(tk.Frame):
         super(View_Tasks, self).__init__()
         self.background = self.master["background"]
         self.font = ('Helvetica', 16)
+        self.logged_in_user = self.master.logged_in_user
 
         self.main_frame = tk.LabelFrame(self, bg=self.background)
         self.main_frame.place(x=10, y=10)
@@ -211,8 +217,11 @@ class View_Tasks(tk.Frame):
                                         bg=self.background, font=('Helvetica', 20, "bold"))
         self.log_out_btn = tk.Button(self.main_frame, text="Log out", command=lambda: self.show_frame(LoginPage),
                                      bg=self.background, )
+        self.main_meny_btn = tk.Button(self.main_frame, text="Main page", command=lambda: self.show_frame(MainPage),
+                                     bg=self.background, )
         self.user_name_label.place(x=220, y=10, width=250, height=20)
-        self.log_out_btn.place(x=550, y=10, width=100, height=20)
+        self.log_out_btn.place(x=550, y=2, width=100, height=20)
+        self.main_meny_btn.place(x=550, y=25, width=100, height=20)
         self.main_frame.place(height=50, width=680, )
 
         self.scd_frame = tk.LabelFrame(self, text="Tasks:", bg=self.background)
@@ -245,15 +254,12 @@ class View_Tasks(tk.Frame):
             self.data = file.readlines()
             for x in self.data:
                 task = x.split(",")
-                frame = Task_Frame(self.scrollable_frame, task=task)
+                frame = Task_Frame(self.scrollable_frame, task=task, user=self.logged_in_user)
                 frame.pack()
 
         self.canvas.pack(side="left", fill="both", expand=True)
         self.scroll_bar.pack(side="right", fill="y")
-        # self.scrollable_frame.pack(side="left", fill="both", expand=True)
 
-        # self.submit_button = tk.Button(self.main_frame, text="Submit",
-        #                                font=('Helvetica', 20), ).place(x=25, y=350)
 
     def show_frame(self, page_name):
         self.destroy()
@@ -261,10 +267,11 @@ class View_Tasks(tk.Frame):
 
 
 class Task_Frame(tk.Frame):
-    def __init__(self, parent, task=None):
+    def __init__(self, parent, task=None, user=None):
         tk.Frame.__init__(self, parent, )
         self.background = '#EBEBEB'
         self.task = task
+        self.logged_in_user = user
         self.task_frame = tk.LabelFrame(self, text=f"Task #{task[0]} ", width=650, height=100)
         self.task_frame.pack()
         self.lbl_user = tk.Label(self.task_frame, text=f"{task[1]}", justify=tk.LEFT, bg=self.background,
@@ -285,11 +292,11 @@ class Task_Frame(tk.Frame):
         self.lbl_end_date = tk.Label(self.task_frame, text=f"{task[5]}", width=10,
                                      height=4, justify=tk.LEFT, wraplength=200, bg=self.background)
         self.lbl_end_date.place(x=469, y=0)
-        self.edit_button = tk.Button(self.task_frame, text="Edit", command=lambda: print(self.task[0]))
+        self.edit_button = tk.Button(self.task_frame, text="Edit", command=lambda: print(self.master.logged_in_user))
         self.edit_button.place(x=600, y=0)
         self.confirm_button = tk.Button(self.task_frame, text="Done", command=lambda: self.mark_task_done(task[0]))
         self.confirm_button.place(x=600, y=25)
-        self.del_button = tk.Button(self.task_frame, text="Delt", command=lambda: print(self.task[0]))
+        self.del_button = tk.Button(self.task_frame, text="Delt", command=lambda: self.delete_task(task[0]))
         self.del_button.place(x=600, y=50)
         if str(task[6]).strip() == "Yes":
             self.fin_lbl = tk.Label(self.task_frame, text='+', background='green')
@@ -300,44 +307,39 @@ class Task_Frame(tk.Frame):
         self.pack()
 
     def mark_task_done(self, task):
-        # print(task)
         answer = messagebox.askokcancel(title="Confirm", message="Confirm task fulfilment ? !")
+        new_file_text = list()
         if answer:
             with open("tasks.txt", "r") as file:
                 lines = file.readlines()
-                print(lines)
-                print(type(lines[0]))
-                # for x in lines:
-                #     line = x.split(",")
-                #     if line[6] == "Yes\n":
-                #         line[6] = "Yes"
-                #     elif line[6] == "No\n":
-                #          line[6] = "No"
-                #     elif line[0] == task[0]:
-                #         # print(line)
-                #         line[6] = "Yes\n"
-                        # if line[6] == "Yes\n":
-                        #     line[6] = "Yes"
-                        # elif line[6] == "No\n":
-                        #     line[6] = "No"
-                        # print(line)
-                #         text = ",".join(line)
-                #         print(text)
-                #         print(type(text))
-                #     lines[int(task) - 1] = ",".join(line)
-                # # lines[x] = ",".join(line)
-                # print(lines)
-                #         print(line)
-                #
-                #         zxzx = ",".join(line)
-                #         print(zxzx)
-                #         lines[int(task) - 1] = ",".join(line)
-                #         print(lines)
-                # str(lines).replace('\n','')
-                # lines= "\n".join(str(lines))
-                # print(lines)
-                # print(type(lines))
-                # file.write(str(lines).split("\n"))
+                for line in lines:
+                    line = line.split(",")
+                    if line[0] == task[0]:
+                        line[6] = "Yes\n"
+                    new_file_text.append(','.join(line))
+            with open("tasks.txt", "w") as file:
+                file.write(''.join(new_file_text))
+        self.destroy()
+        View_Tasks().place(height=500, width=700)
+
+    def delete_task(self, task):
+        if str(self.logged_in_user).lower() == "admin":
+            answer = messagebox.askokcancel(title="Delete ?", message="Confirm delete task! ")
+            new_file_text = list()
+            if answer:
+                with open("tasks.txt", "r") as file:
+                    lines = file.readlines()
+                    for line in lines:
+                        line = line.split(",")
+                        if line[0] != task[0]:
+                            new_file_text.append(','.join(line))
+                with open("tasks.txt", "w") as file:
+                    file.write(''.join(new_file_text))
+                self.destroy()
+                View_Tasks().place(height=500, width=700)
+        else:
+            messagebox.showerror(title="Error", message="You don't have right to do this !")
+            self.bell()
 
 
 if __name__ == '__main__':
