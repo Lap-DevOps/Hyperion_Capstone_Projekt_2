@@ -5,6 +5,9 @@ import tkinter as tk
 from random import randrange
 from tkinter import messagebox, ttk
 
+from tkcalendar import DateEntry
+
+
 # from tkcalendar import Calendar, DateEntry
 
 
@@ -343,8 +346,6 @@ class Add_Task(tk.Frame):
         self.font = ('Helvetica', 16)
         self.logged_in_user = self.master.logged_in_user
         self.users = list(self.master.all_users.keys())
-        print(self.users)
-        print((type(self.users)))
 
         self.main_frame = tk.LabelFrame(self, bg=self.background)
         self.main_frame.place(x=10, y=10)
@@ -364,43 +365,64 @@ class Add_Task(tk.Frame):
         self.scd_frame = tk.LabelFrame(self, text="Tasks:", bg=self.background)
         self.scd_frame.place(x=10, y=60, width=680, height=430)
 
+        self.task_lbl = tk.Label(self.scd_frame, text='Task:', width=15)
+        self.task_lbl.place(x=200, y=10)
+        self.task_entry = tk.Entry(self.scd_frame, width=25)
+        self.task_entry.place(x=350, y=10)
+
         self.task_id_lbl = tk.Label(self.scd_frame, text="Task ID", width=15)
-        self.task_id_lbl.place(x=200, y=10)
+        self.task_id_lbl.place(x=200, y=50)
         self.id = randrange(10000)
         self.task_id = tk.Label(self.scd_frame, text=self.id, width=15)
-        self.task_id.place(x=350, y=10)
+        self.task_id.place(x=350, y=50)
         self.user_lbl = tk.Label(self.scd_frame, text="Assigned to:", width=15)
-        self.user_lbl.place(x=200, y=50)
+        self.user_lbl.place(x=200, y=90)
         if str(self.logged_in_user).lower() != "admin":
             self.user_entry = tk.Label(self.scd_frame, text=f"{str(self.logged_in_user).title()}", width=15)
-            self.user_entry.place(x=350, y=50)
+            self.user_entry.place(x=350, y=90)
         else:
             self.user_entry = ttk.Combobox(self.scd_frame, values=self.users, width=15)
-            self.user_entry.place(x=350, y=50)
+            self.user_entry.place(x=350, y=90)
 
         self.date_assigned_lbl = tk.Label(self.scd_frame, text="Date assigned:", width=15)
-        self.date_assigned_lbl.place(x=200, y=90)
-        self.date_assigned = tk.Label(self.scd_frame, text="Today", width=15)
-        self.date_assigned.place(x=350, y=90)
+        self.date_assigned_lbl.place(x=200, y=130)
+        self.date_assigned = DateEntry(self.scd_frame, text="Today", width=10, date_pattern='dd mm YYYY')
+        self.date_assigned.place(x=350, y=130)
         self.date_due_to_lbl = tk.Label(self.scd_frame, text="Due date: ", width=15)
-        self.date_due_to_lbl.place(x=200, y=130)
-        self.date_due_to = tk.Label(self.scd_frame, text=" date: ", width=15)
-        self.date_due_to.place(x=350, y=130)
+        self.date_due_to_lbl.place(x=200, y=170)
+        self.date_due_to = DateEntry(self.scd_frame, text=" date: ", width=10, date_pattern='dd MM YYYY')
+        self.date_due_to.place(x=350, y=170)
+        self.date_due_to._top_cal.overrideredirect(False)
         self.tsk_cmpl_lbl = tk.Label(self.scd_frame, text="Task complete ?", width=15)
-        self.tsk_cmpl_lbl.place(x=200, y=170)
+        self.tsk_cmpl_lbl.place(x=200, y=210)
         self.tsk_cmpl = ttk.Combobox(self.scd_frame, values=("Yes", "No"), width=5)
-        self.tsk_cmpl.place(x=350, y=170)
+        self.tsk_cmpl.current(1)
+        self.tsk_cmpl.place(x=350, y=210)
         self.task_deskr_lbl = tk.Label(self.scd_frame, text="Task description:", width=15)
-        self.task_deskr_lbl.place(x=200, y=210)
+        self.task_deskr_lbl.place(x=200, y=250)
         self.task_deskr = tk.Text(self.scd_frame, width=35, height=7)
-        self.task_deskr.place(x=350, y=210)
+        self.task_deskr.place(x=350, y=250)
 
-        self.sbm_btn = tk.Button(self.scd_frame, text="Submit", command=lambda: print('sdasd'))
+        self.sbm_btn = tk.Button(self.scd_frame, text="Submit", command=lambda: self.save_task())
         self.sbm_btn.place(x=300, y=350)
 
     def show_frame(self, page_name):
         self.destroy()
         page_name().place(height=500, width=700)
+
+    def save_task(self):
+        if str(self.logged_in_user).lower() == "admin":
+            user = self.user_entry.get()
+        else:
+            user = self.logged_in_user
+        task = str(self.id) + ',' + str(user) + ',' + str(self.task_entry.get()) + ',' + str(
+            self.task_deskr.get("1.0", "end-1c")).replace('\n', " ") + ',' + str(self.date_assigned.get()) + "," + str(
+            self.date_due_to.get()) + ',' + str(self.tsk_cmpl.get()) + '\n'
+
+        with open("tasks.txt", "a") as file:
+            file.write(task)
+            messagebox.showerror(title="Susses", message="Task added !")
+            self.show_frame(MainPage)
 
 
 class Task_Frame(tk.Frame):
