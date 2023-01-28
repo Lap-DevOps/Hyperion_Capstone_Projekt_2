@@ -8,9 +8,6 @@ from tkinter import messagebox, ttk
 from tkcalendar import DateEntry
 
 
-# from tkcalendar import Calendar, DateEntry
-
-
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -18,14 +15,14 @@ class App(tk.Tk):
         self.geometry("700x500")
 
         self.title("Task Manager")
-        self.resizable(None, None)
+        self.resizable(0, 0)
         self['background'] = '#EBEBEB'
 
         self.all_users = {}
         self.logged_in_user = None
 
         self.get_users_list()
-        Add_Task().place(height=500, width=700)
+        StatisticPage().place(height=500, width=700)
 
     def get_users_list(self):
         with open('user.txt', "r") as file:
@@ -71,8 +68,8 @@ class MainPage(tk.Frame):
         tk.Button(self.scd_frame, text="Generate reports").place(x=225, y=240, width=250,
                                                                  height=50)
         if str(self.master.logged_in_user).lower() == "admin":
-            tk.Button(self.scd_frame, text="Display statistic").place(x=225, y=300, width=250,
-                                                                      height=50)
+            tk.Button(self.scd_frame, text="Display statistic", command=lambda: self.show_frame(StatisticPage)).place(
+                x=225, y=300, width=250, height=50)
         tk.Button(self.scd_frame, text="Exit", command=self.master.destroy).place(x=225, y=360,
                                                                                   width=250,
                                                                                   height=50, )
@@ -133,17 +130,99 @@ class StatisticPage(tk.Frame):
     def __init__(self):
         super(StatisticPage, self).__init__()
         self.background = self.master["background"]
-        self.lablel1 = tk.Label(self, text="Statistic page", bg=self.background)
-        self.lablel1.pack(pady=20)
-        self.button = tk.Button(self, text="G0 to main", bg=self.background, command=lambda: self.show_frame(MainPage))
-        self.button.pack()
-        self.button = tk.Button(self, text="G0 to login", bg=self.background,
-                                command=lambda: self.show_frame(LoginPage))
-        self.button.pack()
+
+        self.main_frame = tk.LabelFrame(self, bg=self.background)
+        self.main_frame.place(x=10, y=10)
+        self.user_frame = tk.LabelFrame(self.main_frame, bg=self.background, )
+        self.user_name_label = tk.Label(self.main_frame, text=f"Statistic of Users:",
+                                        bg=self.background, font=('Helvetica', 20, "bold"))
+        self.log_out_btn = tk.Button(self.main_frame, text="Log out", command=lambda: self.show_frame(LoginPage),
+                                     bg=self.background, )
+        self.main_meny_btn = tk.Button(self.main_frame, text="Main page", command=lambda: self.show_frame(MainPage),
+                                       bg=self.background, )
+        self.user_name_label.place(x=220, y=10, width=250, height=20)
+        self.log_out_btn.place(x=550, y=2, width=100, height=20)
+        self.main_meny_btn.place(x=550, y=25, width=100, height=20)
+        self.main_frame.place(height=50, width=680, )
+        self.scd_frame = tk.LabelFrame(self, text="Statistic:", bg=self.background)
+        self.scd_frame.place(x=10, y=60, width=680, height=430)
+
+        self.forth_frame = tk.LabelFrame(self, bg=self.background)
+        self.forth_frame.place(x=10, y=115, width=680, height=350)
+
+        self.canvas = tk.Canvas(self.forth_frame, background=self.background)
+        self.scroll_bar = ttk.Scrollbar(self.canvas, orient="vertical", command=self.canvas.yview)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
+            )
+        )
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scroll_bar.set)
+
+        with open("tasks.txt", "r") as file:
+            self.data = file.readlines()
+            self.statistic = {}
+            for x in self.data:
+                task = x.split(",")
+                if task[1] not in self.statistic:
+                    self.statistic[task[1]] = [1, 0, 0]
+                    if task[6].strip().lower() == 'yes':
+                        self.statistic[task[1]][1] += 1
+                    else:
+                        self.statistic[task[1]][2] += 1
+                else:
+                    self.statistic[task[1]][0] += 1
+                    if task[6].strip().lower() == 'yes':
+                        self.statistic[task[1]][1] += 1
+                    else:
+                        self.statistic[task[1]][2] += 1
+
+            for user, stat in self.statistic.items():
+                frame = StatisticFrame(self.scrollable_frame, stat=stat, user=user)
+                frame.pack()
+
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scroll_bar.pack(side="right", fill="y")
 
     def show_frame(self, page_name):
         self.destroy()
-        page_name().pack()
+        page_name().place(height=500, width=700)
+
+
+class StatisticFrame(tk.Frame):
+    def __init__(self, parent, stat=None, user=None):
+        tk.Frame.__init__(self, parent, )
+        self.user = user
+        self.stat = stat
+
+        self.stat_frame = tk.LabelFrame(self, text=f"User: {str(self.user).title()} ", width=650, height=150)
+        self.stat_frame.pack()
+        self.user_lbl = tk.Label(self.stat_frame, text="User name:", width=20, anchor="w", background="#EBEBEB")
+        self.user_lbl.place(x=150, y=10)
+        self.user_all_tasks = tk.Label(self.stat_frame, text="Total number of tasks:", width=20, anchor="w",
+                                       background="#EBEBEB")
+        self.user_all_tasks.place(x=150, y=35)
+        self.user_fin_tasks = tk.Label(self.stat_frame, text="Finished tasks:", width=20, anchor="w",
+                                       background="#EBEBEB")
+        self.user_fin_tasks.place(x=150, y=60)
+        self.user_n_fin_tasks = tk.Label(self.stat_frame, text="Not finished tasks:", width=20, anchor="w",
+                                         background="#EBEBEB")
+        self.user_n_fin_tasks.place(x=150, y=85)
+
+        self.user_lbl2 = tk.Label(self.stat_frame, text=f"{str(self.user).title()}", width=10, anchor="center", background="#EBEBEB")
+        self.user_lbl2.place(x=450, y=10)
+        self.user_all2_tasks = tk.Label(self.stat_frame, text=f"{self.stat[0]}", width=10, anchor="center",
+                                        background="#EBEBEB")
+        self.user_all2_tasks.place(x=450, y=35)
+        self.user_fin2_tasks = tk.Label(self.stat_frame, text=f"{self.stat[1]}", width=10, anchor="center",
+                                        background="#EBEBEB")
+        self.user_fin2_tasks.place(x=450, y=60)
+        self.user_n_fin2_tasks = tk.Label(self.stat_frame, text=f"{self.stat[2]}", width=10, anchor="center",
+                                          background="#EBEBEB")
+        self.user_n_fin2_tasks.place(x=450, y=85)
 
 
 class AddUserForm(tk.Frame):
@@ -473,7 +552,7 @@ class Task_Frame(tk.Frame):
                 lines = file.readlines()
                 for line in lines:
                     line = line.split(",")
-                    if line[0] == task[0]:
+                    if line[0] == task:
                         line[6] = "Yes\n"
                     new_file_text.append(','.join(line))
             with open("tasks.txt", "w") as file:
