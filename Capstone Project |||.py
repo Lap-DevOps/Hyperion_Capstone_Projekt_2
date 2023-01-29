@@ -2,9 +2,9 @@
 # it stores user and their task and show it using ktinter
 
 import tkinter as tk
+from datetime import datetime
 from random import randrange
 from tkinter import messagebox, ttk
-
 from tkcalendar import DateEntry
 
 
@@ -22,7 +22,7 @@ class App(tk.Tk):
         self.logged_in_user = None
 
         self.get_users_list()
-        StatisticPage().place(height=500, width=700)
+        LoginPage().place(height=500, width=700)
 
     def get_users_list(self):
         with open('user.txt', "r") as file:
@@ -65,8 +65,7 @@ class MainPage(tk.Frame):
                                                                                                               y=180,
                                                                                                               width=250,
                                                                                                               height=50)
-        tk.Button(self.scd_frame, text="Generate reports").place(x=225, y=240, width=250,
-                                                                 height=50)
+
         if str(self.master.logged_in_user).lower() == "admin":
             tk.Button(self.scd_frame, text="Display statistic", command=lambda: self.show_frame(StatisticPage)).place(
                 x=225, y=300, width=250, height=50)
@@ -130,6 +129,7 @@ class StatisticPage(tk.Frame):
     def __init__(self):
         super(StatisticPage, self).__init__()
         self.background = self.master["background"]
+        self.tasks_amount = 0
 
         self.main_frame = tk.LabelFrame(self, bg=self.background)
         self.main_frame.place(x=10, y=10)
@@ -167,12 +167,15 @@ class StatisticPage(tk.Frame):
             self.statistic = {}
             for x in self.data:
                 task = x.split(",")
+                self.tasks_amount += 1
                 if task[1] not in self.statistic:
-                    self.statistic[task[1]] = [1, 0, 0]
+                    self.statistic[task[1]] = [1, 0, 0, 0]
                     if task[6].strip().lower() == 'yes':
                         self.statistic[task[1]][1] += 1
                     else:
                         self.statistic[task[1]][2] += 1
+                        if datetime.now().strftime("%d %b %Y") > task[5]:
+                            self.statistic[task[1]][3] += 1
                 else:
                     self.statistic[task[1]][0] += 1
                     if task[6].strip().lower() == 'yes':
@@ -181,11 +184,60 @@ class StatisticPage(tk.Frame):
                         self.statistic[task[1]][2] += 1
 
             for user, stat in self.statistic.items():
-                frame = StatisticFrame(self.scrollable_frame, stat=stat, user=user)
+                frame = StatisticFrame(self.scrollable_frame, stat=stat, user=user, total=self.tasks_amount)
                 frame.pack()
-
+        self.tasks_amount_lbl = tk.Label(self.scd_frame, text=f"Total tasks: {self.tasks_amount}")
+        self.tasks_amount_lbl.place(x=20, y=5)
+        self.report_btb = tk.Button(self.scd_frame, text="Generate reports", command=lambda: self.gen_reports())
+        self.report_btb.place(y=5, x=500)
         self.canvas.pack(side="left", fill="both", expand=True)
         self.scroll_bar.pack(side="right", fill="y")
+
+    def gen_reports(self):
+        StatisticPage()
+        with open("user_overview.txt", "w") as file:
+            print("Users statistic overview !", file=file)
+            print(file=file)
+            for user in self.statistic.items():
+                print(f"Statistic for user:                     {str(user[0]).title()}.  ", file=file)
+                print(f"Total number of tasks:                  {user[1][0]}", file=file)
+                print(f"Finished tasks:                         {user[1][1]}", file=file)
+                print(f"Not finished tasks:                     {user[1][2]}", file=file)
+                print(
+                    f"Percentage of total tasks:              {round((user[1][0] / int(self.tasks_amount) * 100), 2)} %",
+                    file=file)
+                print(f"Percentage of completed tasks:          {round((user[1][1] / user[1][0] * 100), 2)} %",
+                      file=file)
+                print(f"Percentage of not completed tasks:      {round((user[1][2] / user[1][0] * 100), 2)} %",
+                      file=file)
+                print(f"Percentage of overdue tasks:            {round((user[1][3] / user[1][0] * 100), 2)} %",
+                      file=file)
+                print("", file=file)
+                print("----------------------------------------------------------------", file=file)
+                print("", file=file)
+
+        with open("task_overview.txt", "w") as file:
+            print("Tasks statistic overview !", file=file)
+            print(file=file)
+            print('----------------------------------------------------', file=file)
+            print(f"The total number of  tasks:                          {self.tasks_amount}", file=file)
+            print(
+                f"The total number of completed tasks:                 {(sum(x[1] for x in list(self.statistic.values())))}",
+                file=file)
+            print(
+                f"The total number of uncompleted tasks                {(sum(x[2] for x in list(self.statistic.values())))}",
+                file=file)
+            print(
+                f"The total number of overdue tasks                    {(sum(x[3] for x in list(self.statistic.values())))}",
+                file=file)
+            print(
+                f"The percentage of tasks that are incomplete          {round(((sum(x[2] for x in list(self.statistic.values()))) / (sum(x[0] for x in list(self.statistic.values()))) * 100), 2)} %",
+                file=file)
+            print(
+                f"The percentage of tasks that are overdue.            {round(((sum(x[3] for x in list(self.statistic.values()))) / (sum(x[0] for x in list(self.statistic.values()))) * 100), 2)} %",
+                file=file)
+            print()
+            print('----------------------------------------------------', file=file)
 
     def show_frame(self, page_name):
         self.destroy()
@@ -193,26 +245,39 @@ class StatisticPage(tk.Frame):
 
 
 class StatisticFrame(tk.Frame):
-    def __init__(self, parent, stat=None, user=None):
+    def __init__(self, parent, stat=None, user=None, total=None):
         tk.Frame.__init__(self, parent, )
         self.user = user
         self.stat = stat
-
-        self.stat_frame = tk.LabelFrame(self, text=f"User: {str(self.user).title()} ", width=650, height=150)
+        self.tasks_amount = total
+        self.stat_frame = tk.LabelFrame(self, text=f"User: {str(self.user).title()} ", width=650, height=250)
         self.stat_frame.pack()
-        self.user_lbl = tk.Label(self.stat_frame, text="User name:", width=20, anchor="w", background="#EBEBEB")
+        self.user_lbl = tk.Label(self.stat_frame, text="User name:", width=21, anchor="w", background="#EBEBEB")
         self.user_lbl.place(x=150, y=10)
-        self.user_all_tasks = tk.Label(self.stat_frame, text="Total number of tasks:", width=20, anchor="w",
+        self.user_all_tasks = tk.Label(self.stat_frame, text="Total number of tasks:", width=21, anchor="w",
                                        background="#EBEBEB")
         self.user_all_tasks.place(x=150, y=35)
-        self.user_fin_tasks = tk.Label(self.stat_frame, text="Finished tasks:", width=20, anchor="w",
+        self.user_fin_tasks = tk.Label(self.stat_frame, text="Finished tasks:", width=21, anchor="w",
                                        background="#EBEBEB")
         self.user_fin_tasks.place(x=150, y=60)
-        self.user_n_fin_tasks = tk.Label(self.stat_frame, text="Not finished tasks:", width=20, anchor="w",
+        self.user_n_fin_tasks = tk.Label(self.stat_frame, text="Not finished tasks:", width=21, anchor="w",
                                          background="#EBEBEB")
         self.user_n_fin_tasks.place(x=150, y=85)
+        self.percentage_lbl = tk.Label(self.stat_frame, text="Percentage of total tasks:", width=21, anchor="w",
+                                       background="#EBEBEB")
+        self.percentage_lbl.place(x=150, y=110)
+        self.percentage_lbl = tk.Label(self.stat_frame, text="Percentage of completed tasks:", width=21, anchor="w",
+                                       background="#EBEBEB")
+        self.percentage_lbl.place(x=150, y=135)
+        self.percentage_lbl = tk.Label(self.stat_frame, text="% of not completed tasks:", width=21, anchor="w",
+                                       background="#EBEBEB")
+        self.percentage_lbl.place(x=150, y=160)
+        self.percentage_lbl = tk.Label(self.stat_frame, text="Percentage of overdue tasks:", width=21, anchor="w",
+                                       background="#EBEBEB")
+        self.percentage_lbl.place(x=150, y=185)
 
-        self.user_lbl2 = tk.Label(self.stat_frame, text=f"{str(self.user).title()}", width=10, anchor="center", background="#EBEBEB")
+        self.user_lbl2 = tk.Label(self.stat_frame, text=f"{str(self.user).title()}", width=10, anchor="center",
+                                  background="#EBEBEB")
         self.user_lbl2.place(x=450, y=10)
         self.user_all2_tasks = tk.Label(self.stat_frame, text=f"{self.stat[0]}", width=10, anchor="center",
                                         background="#EBEBEB")
@@ -223,6 +288,26 @@ class StatisticFrame(tk.Frame):
         self.user_n_fin2_tasks = tk.Label(self.stat_frame, text=f"{self.stat[2]}", width=10, anchor="center",
                                           background="#EBEBEB")
         self.user_n_fin2_tasks.place(x=450, y=85)
+        self.percentage_lbl1 = tk.Label(self.stat_frame,
+                                        text=f"{round(int(self.stat[0]) / int(self.tasks_amount) * 100, 2)} %",
+                                        width=10, anchor="center",
+                                        background="#EBEBEB")
+        self.percentage_lbl1.place(x=450, y=110)
+        self.percentage_lbl1 = tk.Label(self.stat_frame,
+                                        text=f"{round(int(self.stat[1]) / int(self.stat[0]) * 100, 2)} %", width=10,
+                                        anchor="center",
+                                        background="#EBEBEB")
+        self.percentage_lbl1.place(x=450, y=135)
+        self.percentage_lbl1 = tk.Label(self.stat_frame,
+                                        text=f"{round(int(self.stat[2]) / int(self.stat[0]) * 100, 2)} %", width=10,
+                                        anchor="center",
+                                        background="#EBEBEB")
+        self.percentage_lbl1.place(x=450, y=160)
+        self.percentage_lbl1 = tk.Label(self.stat_frame,
+                                        text=f"{round(int(self.stat[3]) / int(self.stat[0]) * 100, 2)} %", width=10,
+                                        anchor="center",
+                                        background="#EBEBEB")
+        self.percentage_lbl1.place(x=450, y=185)
 
 
 class AddUserForm(tk.Frame):
@@ -465,11 +550,11 @@ class Add_Task(tk.Frame):
 
         self.date_assigned_lbl = tk.Label(self.scd_frame, text="Date assigned:", width=15)
         self.date_assigned_lbl.place(x=200, y=130)
-        self.date_assigned = DateEntry(self.scd_frame, text="Today", width=10, date_pattern='dd mm YYYY')
+        self.date_assigned = DateEntry(self.scd_frame, text="Today", width=10, date_pattern='dd/mm/YYYY')
         self.date_assigned.place(x=350, y=130)
         self.date_due_to_lbl = tk.Label(self.scd_frame, text="Due date: ", width=15)
         self.date_due_to_lbl.place(x=200, y=170)
-        self.date_due_to = DateEntry(self.scd_frame, text=" date: ", width=10, date_pattern='dd MM YYYY')
+        self.date_due_to = DateEntry(self.scd_frame, text=" date: ", width=10, date_pattern='dd/MM/YYYY')
         self.date_due_to.place(x=350, y=170)
         self.date_due_to._top_cal.overrideredirect(False)
         self.tsk_cmpl_lbl = tk.Label(self.scd_frame, text="Task complete ?", width=15)
@@ -495,8 +580,10 @@ class Add_Task(tk.Frame):
         else:
             user = self.logged_in_user
         task = str(self.id) + ',' + str(user) + ',' + str(self.task_entry.get()) + ',' + str(
-            self.task_deskr.get("1.0", "end-1c")).replace('\n', " ") + ',' + str(self.date_assigned.get()) + "," + str(
-            self.date_due_to.get()) + ',' + str(self.tsk_cmpl.get()) + '\n'
+            self.task_deskr.get("1.0", "end-1c")).replace('\n', " ") + ',' + str(
+            datetime.strptime(self.date_assigned.get(), '%d/%m/%Y').strftime('%d %b %Y')) + "," + str(
+            datetime.strptime(self.date_due_to.get(), '%d/%m/%Y').strftime('%d %b %Y')) + ',' + str(
+            self.tsk_cmpl.get()) + '\n'
 
         with open("tasks.txt", "a") as file:
             file.write(task)
