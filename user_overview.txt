@@ -1,0 +1,79 @@
+Users statistic overview !
+
+Statistic for user:                     Admin.  
+Total number of tasks:                  3
+Finished tasks:                         3
+Not finished tasks:                     0
+Percentage of total tasks:              23.08 %
+Percentage of completed tasks:          100.0 %
+Percentage of not completed tasks:      0.0 %
+Percentage of overdue tasks:            0.0 %
+
+----------------------------------------------------------------
+
+Statistic for user:                     John.  
+Total number of tasks:                  1
+Finished tasks:                         1
+Not finished tasks:                     0
+Percentage of total tasks:              7.69 %
+Percentage of completed tasks:          100.0 %
+Percentage of not completed tasks:      0.0 %
+Percentage of overdue tasks:            0.0 %
+
+----------------------------------------------------------------
+
+Statistic for user:                     User1.  
+Total number of tasks:                  3
+Finished tasks:                         2
+Not finished tasks:                     1
+Percentage of total tasks:              23.08 %
+Percentage of completed tasks:          66.67 %
+Percentage of not completed tasks:      33.33 %
+Percentage of overdue tasks:            0.0 %
+
+----------------------------------------------------------------
+
+Statistic for user:                     1User.  
+Total number of tasks:                  1
+Finished tasks:                         0
+Not finished tasks:                     1
+Percentage of total tasks:              7.69 %
+Percentage of completed tasks:          0.0 %
+Percentage of not completed tasks:      100.0 %
+Percentage of overdue tasks:            100.0 %
+
+----------------------------------------------------------------
+
+Statistic for user:                     None.  
+Total number of tasks:                  3
+Finished tasks:                         0
+Not finished tasks:                     3
+Percentage of total tasks:              23.08 %
+Percentage of completed tasks:          0.0 %
+Percentage of not completed tasks:      100.0 %
+Percentage of overdue tasks:            33.33 %
+
+----------------------------------------------------------------
+
+Statistic for user:                     User3.  
+Total number of tasks:                  1
+Finished tasks:                         0
+Not finished tasks:                     1
+Percentage of total tasks:              7.69 %
+Percentage of completed tasks:          0.0 %
+Percentage of not completed tasks:      100.0 %
+Percentage of overdue tasks:            100.0 %
+
+----------------------------------------------------------------
+
+Statistic for user:                     1.  
+Total number of tasks:                  1
+Finished tasks:                         0
+Not finished tasks:                     1
+Percentage of total tasks:              7.69 %
+Percentage of completed tasks:          0.0 %
+Percentage of not completed tasks:      100.0 %
+Percentage of overdue tasks:            100.0 %
+
+----------------------------------------------------------------
+

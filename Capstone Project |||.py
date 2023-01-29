@@ -5,7 +5,6 @@ import tkinter as tk
 from datetime import datetime
 from random import randrange
 from tkinter import messagebox, ttk
-
 from tkcalendar import DateEntry
 
 
@@ -23,7 +22,7 @@ class App(tk.Tk):
         self.logged_in_user = None
 
         self.get_users_list()
-        StatisticPage().place(height=500, width=700)
+        LoginPage().place(height=500, width=700)
 
     def get_users_list(self):
         with open('user.txt', "r") as file:
@@ -66,8 +65,7 @@ class MainPage(tk.Frame):
                                                                                                               y=180,
                                                                                                               width=250,
                                                                                                               height=50)
-        tk.Button(self.scd_frame, text="Generate reports").place(x=225, y=240, width=250,
-                                                                 height=50)
+
         if str(self.master.logged_in_user).lower() == "admin":
             tk.Button(self.scd_frame, text="Display statistic", command=lambda: self.show_frame(StatisticPage)).place(
                 x=225, y=300, width=250, height=50)
@@ -176,7 +174,7 @@ class StatisticPage(tk.Frame):
                         self.statistic[task[1]][1] += 1
                     else:
                         self.statistic[task[1]][2] += 1
-                        if datetime.now().strftime("%d %b %Y")> task[5]:
+                        if datetime.now().strftime("%d %b %Y") > task[5]:
                             self.statistic[task[1]][3] += 1
                 else:
                     self.statistic[task[1]][0] += 1
@@ -196,7 +194,50 @@ class StatisticPage(tk.Frame):
         self.scroll_bar.pack(side="right", fill="y")
 
     def gen_reports(self):
-        pass
+        StatisticPage()
+        with open("user_overview.txt", "w") as file:
+            print("Users statistic overview !", file=file)
+            print(file=file)
+            for user in self.statistic.items():
+                print(f"Statistic for user:                     {str(user[0]).title()}.  ", file=file)
+                print(f"Total number of tasks:                  {user[1][0]}", file=file)
+                print(f"Finished tasks:                         {user[1][1]}", file=file)
+                print(f"Not finished tasks:                     {user[1][2]}", file=file)
+                print(
+                    f"Percentage of total tasks:              {round((user[1][0] / int(self.tasks_amount) * 100), 2)} %",
+                    file=file)
+                print(f"Percentage of completed tasks:          {round((user[1][1] / user[1][0] * 100), 2)} %",
+                      file=file)
+                print(f"Percentage of not completed tasks:      {round((user[1][2] / user[1][0] * 100), 2)} %",
+                      file=file)
+                print(f"Percentage of overdue tasks:            {round((user[1][3] / user[1][0] * 100), 2)} %",
+                      file=file)
+                print("", file=file)
+                print("----------------------------------------------------------------", file=file)
+                print("", file=file)
+
+        with open("task_overview.txt", "w") as file:
+            print("Tasks statistic overview !", file=file)
+            print(file=file)
+            print('----------------------------------------------------', file=file)
+            print(f"The total number of  tasks:                          {self.tasks_amount}", file=file)
+            print(
+                f"The total number of completed tasks:                 {(sum(x[1] for x in list(self.statistic.values())))}",
+                file=file)
+            print(
+                f"The total number of uncompleted tasks                {(sum(x[2] for x in list(self.statistic.values())))}",
+                file=file)
+            print(
+                f"The total number of overdue tasks                    {(sum(x[3] for x in list(self.statistic.values())))}",
+                file=file)
+            print(
+                f"The percentage of tasks that are incomplete          {round(((sum(x[2] for x in list(self.statistic.values()))) / (sum(x[0] for x in list(self.statistic.values()))) * 100), 2)} %",
+                file=file)
+            print(
+                f"The percentage of tasks that are overdue.            {round(((sum(x[3] for x in list(self.statistic.values()))) / (sum(x[0] for x in list(self.statistic.values()))) * 100), 2)} %",
+                file=file)
+            print()
+            print('----------------------------------------------------', file=file)
 
     def show_frame(self, page_name):
         self.destroy()
