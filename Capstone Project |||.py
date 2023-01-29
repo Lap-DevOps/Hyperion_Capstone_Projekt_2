@@ -2,6 +2,7 @@
 # it stores user and their task and show it using ktinter
 
 import tkinter as tk
+from datetime import datetime
 from random import randrange
 from tkinter import messagebox, ttk
 
@@ -170,11 +171,13 @@ class StatisticPage(tk.Frame):
                 task = x.split(",")
                 self.tasks_amount += 1
                 if task[1] not in self.statistic:
-                    self.statistic[task[1]] = [1, 0, 0]
+                    self.statistic[task[1]] = [1, 0, 0, 0]
                     if task[6].strip().lower() == 'yes':
                         self.statistic[task[1]][1] += 1
                     else:
                         self.statistic[task[1]][2] += 1
+                        if datetime.now().strftime("%d %b %Y")> task[5]:
+                            self.statistic[task[1]][3] += 1
                 else:
                     self.statistic[task[1]][0] += 1
                     if task[6].strip().lower() == 'yes':
@@ -185,7 +188,7 @@ class StatisticPage(tk.Frame):
             for user, stat in self.statistic.items():
                 frame = StatisticFrame(self.scrollable_frame, stat=stat, user=user, total=self.tasks_amount)
                 frame.pack()
-        self.tasks_amount_lbl = tk.Label(self.scd_frame, text=f"Total task: {self.tasks_amount}")
+        self.tasks_amount_lbl = tk.Label(self.scd_frame, text=f"Total tasks: {self.tasks_amount}")
         self.tasks_amount_lbl.place(x=20, y=5)
         self.report_btb = tk.Button(self.scd_frame, text="Generate reports", command=lambda: self.gen_reports())
         self.report_btb.place(y=5, x=500)
@@ -254,10 +257,14 @@ class StatisticFrame(tk.Frame):
                                         anchor="center",
                                         background="#EBEBEB")
         self.percentage_lbl1.place(x=450, y=135)
-        self.percentage_lbl1 = tk.Label(self.stat_frame, text=f"{round(int(self.stat[2]) / int(self.stat[0]) * 100, 2)} %", width=10, anchor="center",
+        self.percentage_lbl1 = tk.Label(self.stat_frame,
+                                        text=f"{round(int(self.stat[2]) / int(self.stat[0]) * 100, 2)} %", width=10,
+                                        anchor="center",
                                         background="#EBEBEB")
         self.percentage_lbl1.place(x=450, y=160)
-        self.percentage_lbl1 = tk.Label(self.stat_frame, text="Overdue tasks:", width=10, anchor="center",
+        self.percentage_lbl1 = tk.Label(self.stat_frame,
+                                        text=f"{round(int(self.stat[3]) / int(self.stat[0]) * 100, 2)} %", width=10,
+                                        anchor="center",
                                         background="#EBEBEB")
         self.percentage_lbl1.place(x=450, y=185)
 
@@ -532,8 +539,10 @@ class Add_Task(tk.Frame):
         else:
             user = self.logged_in_user
         task = str(self.id) + ',' + str(user) + ',' + str(self.task_entry.get()) + ',' + str(
-            self.task_deskr.get("1.0", "end-1c")).replace('\n', " ") + ',' + str(self.date_assigned.get()) + "," + str(
-            self.date_due_to.get()) + ',' + str(self.tsk_cmpl.get()) + '\n'
+            self.task_deskr.get("1.0", "end-1c")).replace('\n', " ") + ',' + str(
+            datetime.strptime(self.date_assigned.get(), '%d/%m/%Y').strftime('%d %b %Y')) + "," + str(
+            datetime.strptime(self.date_due_to.get(), '%d/%m/%Y').strftime('%d %b %Y')) + ',' + str(
+            self.tsk_cmpl.get()) + '\n'
 
         with open("tasks.txt", "a") as file:
             file.write(task)
