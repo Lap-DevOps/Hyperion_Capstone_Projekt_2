@@ -16,7 +16,7 @@ According to the task, the information is stored in text files,
 but in the future it should be replaced with storing information in the database using SQLite, etc.
 
 # Requirements
-- [Python 3.11.x](https://www.python.org/)
+- [Python 3.9.x](https://www.python.org/)
 
 # Documentation
 
@@ -28,7 +28,7 @@ This README only shows some examples of this project.
 1. Clone this repo.
 
    ```terminal
-   git clone https://github.com/AtsushiSakai/PythonRobotics.git
+   git clone https://github.com/Lap-DevOps/Hyperion_Capstone_Projekt_2.git
    ```
    
 2. Execute python script 
