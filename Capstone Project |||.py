@@ -5,6 +5,7 @@ import tkinter as tk
 from datetime import datetime
 from random import randrange
 from tkinter import messagebox, ttk
+
 from tkcalendar import DateEntry
 
 
@@ -12,21 +13,27 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
 
+        # Set the window size and background color
         self.geometry("700x500")
-
         self.title("Task Manager")
         self.resizable(0, 0)
         self['background'] = '#EBEBEB'
 
+        # Create a dictionary to store all the registered users and set the current user to None
         self.all_users = {}
         self.logged_in_user = None
 
+        # Call the function to get the list of all registered users from user.txt file
         self.get_users_list()
+
+        # Create a login page object and place it in the window
         LoginPage().place(height=500, width=700)
 
     def get_users_list(self):
+        # Open the user.txt file and read its contents
         with open('user.txt', "r") as file:
             data = file.readlines()
+            # Iterate over each line in the file and add the user to the dictionary
             for line in data:
                 accounts = line.strip("\n", ).strip("").split(",")
                 self.all_users[accounts[0].strip()] = accounts[1].strip()
@@ -35,19 +42,27 @@ class App(tk.Tk):
 class MainPage(tk.Frame):
     def __init__(self):
         super(MainPage, self).__init__()
+
+        # Set background color
         self.background = self.master["background"]
 
+        # Create main frame
         self.main_frame = tk.LabelFrame(self, bg=self.background)
         self.main_frame.place(x=10, y=10)
-        self.user_frame = tk.LabelFrame(self.main_frame, bg=self.background, )
+
+        # Create user frame and display user name
+        self.user_frame = tk.LabelFrame(self.main_frame, bg=self.background)
         self.user_name_label = tk.Label(self.main_frame, text=f"Welcome {str(self.master.logged_in_user).title()} !",
                                         bg=self.background, font=('Helvetica', 20, "bold"))
+        # Create log out button
         self.log_out_btn = tk.Button(self.main_frame, text="Log out", command=lambda: self.show_frame(LoginPage),
-                                     bg=self.background, )
+                                     bg=self.background)
+        # Place user name label and log out button
         self.user_name_label.place(x=260, y=10, width=170, height=20)
         self.log_out_btn.place(x=550, y=10, width=100, height=20)
-        self.main_frame.place(height=50, width=680, )
+        self.main_frame.place(height=50, width=680)
 
+        # Create second frame and buttons
         self.scd_frame = tk.LabelFrame(self, text="MENU:", bg=self.background)
         self.scd_frame.place(x=10, y=60, width=680, height=430)
         tk.Button(self.scd_frame, text="Register new user", command=lambda: self.show_frame(AddUserForm)).place(x=225,
@@ -66,28 +81,36 @@ class MainPage(tk.Frame):
                                                                                                               width=250,
                                                                                                               height=50)
 
+        # Create statistic button if user is an admin
         if str(self.master.logged_in_user).lower() == "admin":
             tk.Button(self.scd_frame, text="Display statistic", command=lambda: self.show_frame(StatisticPage)).place(
                 x=225, y=300, width=250, height=50)
+
+        # Create exit button
         tk.Button(self.scd_frame, text="Exit", command=self.master.destroy).place(x=225, y=360,
                                                                                   width=250,
-                                                                                  height=50, )
+                                                                                  height=50)
 
     def show_frame(self, page_name):
+        # Check if user has permission to access the page
         if str(page_name) == "<class '__main__.AddUserForm'>" and str(self.master.logged_in_user).lower() != 'admin':
+            # Display error message and ring bell
             messagebox.showerror(title="Error", message="You don't have right to do this !")
             self.bell()
         else:
+            # Destroy current page and display new page
             self.destroy()
             page_name().place(height=500, width=700)
 
 
 class LoginPage(tk.Frame):
-    def __init__(self, ):
+    def __init__(self):
         super(LoginPage, self).__init__()
         self.background = self.master["background"]
         self.font = ('Helvetica', 16)
         self.all_users = self.master.all_users
+
+        # create login form widgets
         self.center_frame = tk.LabelFrame(self, bg=self.background)
         self.login_label = tk.Label(self.center_frame, text="Login", background=self.background,
                                     font=('Helvetica', 30))
@@ -99,6 +122,8 @@ class LoginPage(tk.Frame):
                                        font=self.font)
         self.login_button = tk.Button(self.center_frame, text="Login", background="#303841",
                                       font=('Helvetica', 20), command=lambda: self.log_in_user())
+
+        # place login form widgets
         self.login_label.grid(row=0, column=0, columnspan=2, pady=40, padx=100)
         self.username_label.grid(row=1, column=0, padx=100)
         self.username_entry.grid(row=1, column=1, pady=20, padx=100)
@@ -108,6 +133,7 @@ class LoginPage(tk.Frame):
         self.center_frame.place(x=0, y=0, height=500, width=700)
 
     def show_frame(self, page_name):
+        # destroy current frame and show new frame
         self.destroy()
         page_name().place(height=500, width=700)
 
@@ -115,74 +141,129 @@ class LoginPage(tk.Frame):
         try:
             if self.username_entry.get().lower() in self.all_users and \
                     self.password_entry.get() == self.all_users[self.username_entry.get().lower()]:
+                # set logged in user and show main page
                 self.master.logged_in_user = self.username_entry.get()
                 self.show_frame(MainPage)
             else:
+                # show error message and bell if login fails
                 self.bell()
                 messagebox.showerror(title="Error", message="Username or Password incorrect !")
 
         except KeyError:
+            # do nothing if KeyError occurs
             pass
 
 
 class StatisticPage(tk.Frame):
     def __init__(self):
         super(StatisticPage, self).__init__()
+        # Store the background color of the parent widget
         self.background = self.master["background"]
+        # Initialize the number of tasks to 0
         self.tasks_amount = 0
 
+        # Create a main frame and place it at the top-left corner of the window
         self.main_frame = tk.LabelFrame(self, bg=self.background)
         self.main_frame.place(x=10, y=10)
-        self.user_frame = tk.LabelFrame(self.main_frame, bg=self.background, )
-        self.user_name_label = tk.Label(self.main_frame, text=f"Statistic of Users:",
-                                        bg=self.background, font=('Helvetica', 20, "bold"))
+
+        # Create a user frame inside the main frame and set its background color
+        self.user_frame = tk.LabelFrame(self.main_frame, bg=self.background)
+
+        # Create a label for the user name and set its text, font, and background color
+        self.user_name_label = tk.Label(self.main_frame, text=f"Statistic of Users:", bg=self.background,
+                                        font=('Helvetica', 20, "bold"))
+
+        # Create a logout button and set its text, command, and background color
         self.log_out_btn = tk.Button(self.main_frame, text="Log out", command=lambda: self.show_frame(LoginPage),
-                                     bg=self.background, )
+                                     bg=self.background)
+
+        # Create a main menu button and set its text, command, and background color
         self.main_meny_btn = tk.Button(self.main_frame, text="Main page", command=lambda: self.show_frame(MainPage),
-                                       bg=self.background, )
+                                       bg=self.background)
+
+        # Place the user name label, logout button, and main menu button
         self.user_name_label.place(x=220, y=10, width=250, height=20)
         self.log_out_btn.place(x=550, y=2, width=100, height=20)
         self.main_meny_btn.place(x=550, y=25, width=100, height=20)
-        self.main_frame.place(height=50, width=680, )
+
+        # Set the size of the main frame
+        self.main_frame.place(height=50, width=680)
+
+        # Create a second frame for the statistics and set its background color
         self.scd_frame = tk.LabelFrame(self, text="Statistic:", bg=self.background)
+
+        # Place the second frame below the main frame
         self.scd_frame.place(x=10, y=60, width=680, height=430)
 
+        # Create a fourth frame and set its background color
         self.forth_frame = tk.LabelFrame(self, bg=self.background)
+
+        # Place the fourth frame below the user frame
         self.forth_frame.place(x=10, y=115, width=680, height=350)
 
+        # Create a canvas and set its background color
         self.canvas = tk.Canvas(self.forth_frame, background=self.background)
+
+        # Create a scrollbar and set its orientation and command
         self.scroll_bar = ttk.Scrollbar(self.canvas, orient="vertical", command=self.canvas.yview)
+
+        # Create a scrollable frame and bind it to the canvas
         self.scrollable_frame = ttk.Frame(self.canvas)
         self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(
-                scrollregion=self.canvas.bbox("all")
-            )
-        )
+            "<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+        # Create a window inside the canvas for the scrollable frame
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        # Set the scrollbar command to the canvas yview
         self.canvas.configure(yscrollcommand=self.scroll_bar.set)
 
+        # Open the 'tasks.txt' file in read mode and store its contents in 'self.data'
         with open("tasks.txt", "r") as file:
             self.data = file.readlines()
+
+            # Initialize an empty dictionary to store statistics
             self.statistic = {}
+
+            # Loop through each line in 'self.data'
             for x in self.data:
+                # Split each line by comma and store the result in 'task'
                 task = x.split(",")
+
+                # Increment 'self.tasks_amount' by 1
                 self.tasks_amount += 1
+
+                # If the task's category is not already in the 'self.statistic' dictionary:
                 if task[1] not in self.statistic:
+                    # Add the category to the dictionary with a list of counts for tasks, completed tasks, incomplete tasks, and overdue tasks
                     self.statistic[task[1]] = [1, 0, 0, 0]
+
+                    # If the task is marked as completed:
                     if task[6].strip().lower() == 'yes':
+                        # Increment the count of completed tasks for the category
                         self.statistic[task[1]][1] += 1
                     else:
-                        self.statistic[task[1]][2] += 1
-                        if datetime.now().strftime("%d %b %Y") > task[5]:
-                            self.statistic[task[1]][3] += 1
-                else:
-                    self.statistic[task[1]][0] += 1
-                    if task[6].strip().lower() == 'yes':
-                        self.statistic[task[1]][1] += 1
-                    else:
+                        # Otherwise, increment the count of incomplete tasks for the category
                         self.statistic[task[1]][2] += 1
 
+                        # If the task is overdue, increment the count of overdue tasks for the category
+                        if datetime.now().strftime("%d %b %Y") > task[5]:
+                            self.statistic[task[1]][3] += 1
+
+                # If the task's category is already in the 'self.statistic' dictionary:
+                else:
+                    # Increment the count of tasks for the category
+                    self.statistic[task[1]][0] += 1
+
+                    # If the task is marked as completed:
+                    if task[6].strip().lower() == 'yes':
+                        # Increment the count of completed tasks for the category
+                        self.statistic[task[1]][1] += 1
+                    else:
+                        # Otherwise, increment the count of incomplete tasks for the category
+                        self.statistic[task[1]][2] += 1
+
+            # Loop through each category and its statistics in the 'self.statistic' dictionary
             for user, stat in self.statistic.items():
                 frame = StatisticFrame(self.scrollable_frame, stat=stat, user=user, total=self.tasks_amount)
                 frame.pack()
